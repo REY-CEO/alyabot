@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alyabot Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{background:#050505;color:white;padding:20px;}
+.container{max-width:500px;margin:auto;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:35px;}
+.logo{font-size:33px;font-weight:700;}
+.menu-btn{width:45px;height:45px;border-radius:14px;border:1px solid #222;background:#111;color:white;font-size:22px;cursor:pointer;}
+.hero h1{font-size:40px;margin-bottom:10px;}
+.hero p{color:#9b9b9b;line-height:1.7;margin-bottom:30px;}
+.tabs{display:flex;gap:10px;margin-bottom:30px;flex-wrap: wrap;}
+.tabs button{flex:1;min-width: 100px;padding:15px;border-radius:18px;border:1px solid #222;background:#0f0f0f;color:white;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;}
+.tabs button.active{background:white;color:black;font-weight:700;}
+.section-title{margin-bottom:18px;color:#b5b5b5;font-size:15px;}
+.products{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:30px;}
+.card{background:#0f0f0f;border:1px solid #222;border-radius:22px;padding:22px;transition:.2s;cursor:pointer;}
+.card:hover{transform:translateY(-4px);}
+.card.active{background:white;color:black;}
+.card h2{font-size:20px;margin-bottom:5px;font-weight:600;}
+.card p{color:#9b9b9b;font-size:14px;}
+.card.active p{color:#444;}
+.input-box{margin-bottom:20px;}
+.input-box label{display:block;margin-bottom:10px;color:#b5b5b5;font-size:14px;}
+.input-box input{width:100%;background:#0f0f0f;border:1px solid #222;border-radius:18px;padding:18px;color:white;font-size:15px;outline:none;}
+.input-box input:focus{border:1px solid white;}
+.buy-btn{width:100%;border:none;padding:20px;border-radius:20px;background:white;color:black;font-size:18px;font-weight:700;cursor:pointer;transition:.2s;}
+.buy-btn:hover{opacity:.9;}
+.chat-box{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.chat-text{background:#111;border:1px solid #222;padding:14px 18px;border-radius:18px;font-size:14px;}
+.chat-btn{width:65px;height:65px;border-radius:50%;border:none;background:white;color:black;font-size:28px;cursor:pointer;}
+@media(max-width:500px){.products{grid-template-columns:1fr;}.hero h1{font-size:32px;}}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo">alyabot space</div>
+        <button class="menu-btn">☰</button>
+    </div>
+
+    <div class="hero">
+        <h1>layanan sewa alyabot</h1>
+        <p>Sewa bot, perpanjang masa aktif, atau beli fitur premium secara instan. Cukup scan QRIS Pakasir, status otomatis aktif tanpa perlu konfirmasi manual ke admin.</p>
+    </div>
+
+    <div class="tabs">
+        <button class="active" onclick="switchTab('NEW')">sewa baru</button>
+        <button onclick="switchTab('RENEW')">perpanjang</button>
+        <button onclick="switchTab('PREMIUM')">fitur premium</button>
+        <button onclick="switchTab('LIST_GRUP')">list grup</button>
+    </div>
+
+    <div class="section-title" id="section-product-title">pilih paket durasi sewa baru</div>
+    <div class="products" id="products-container"></div>
+
+    <div class="input-box" id="group-link-container">
+        <label>link tautan grup whatsapp</label>
+        <input type="text" id="groupLink" placeholder="https://chat.whatsapp.com/xxx">
+    </div>
+
+    <div class="input-box" id="target-number-container">
+        <label id="target-number-label">nomor whatsapp target (pendaftar)</label>
+        <input type="text" id="targetNumber" placeholder="628xxxx">
+    </div>
+
+    <button class="buy-btn" id="submitBtn">lanjutkan pembayaran</button>
+</div>
+
+<script>
+const BOT_PACKAGES = {
+    "NEW": [
+        { id: 1, duration: "30 Hari", label: "Rp 12.000" },
+        { id: 2, duration: "60 Hari", label: "Rp 20.000" },
+        { id: 3, duration: "90 Hari", label: "Rp 30.000" },
+        { id: 4, duration: "120 Hari", label: "Rp 40.000" },
+        { id: 5, duration: "150 Hari", label: "Rp 50.000" },
+        { id: 6, duration: "180 Hari", label: "Rp 60.000" }
+    ],
+    "RENEW": [
+        { id: 11, duration: "Perpanjang 30H", label: "Rp 12.000" },
+        { id: 12, duration: "Perpanjang 60H", label: "Rp 20.000" },
+        { id: 13, duration: "Perpanjang 90H", label: "Rp 30.000" },
+        { id: 14, duration: "Perpanjang 120H", label: "Rp 40.000" },
+        { id: 15, duration: "Perpanjang 150H", label: "Rp 50.000" },
+        { id: 16, duration: "Perpanjang 180H", label: "Rp 60.000" }
+    ],
+    "PREMIUM": [
+        { id: "new_1", duration: "Premium 1 Hari", label: "Rp 1.000" },
+        { id: "new_2", duration: "Premium 3 Hari", label: "Rp 3.000" },
+        { id: "new_3", duration: "Premium 5 Hari", label: "Rp 5.000" },
+        { id: "new_4", duration: "Premium 8 Hari", label: "Rp 8.000" },
+        { id: "new_5", duration: "Premium 1 Month", label: "Rp 10.000" },
+        { id: "new_6", duration: "Premium 2 Month", label: "Rp 20.000" },
+        { id: "new_7", duration: "Premium 3 Month", label: "Rp 30.000" },
+        { id: "new_8", duration: "Premium 4 Month", label: "Rp 40.000" },
+        { id: "new_9", duration: "Premium 5 Month", label: "Rp 50.000" },
+        { id: "new_10", duration: "Premium 6 Month", label: "Rp 60.000" },
+        { id: "new_11", duration: "Premium 7 Month", label: "Rp 70.000" },
+        { id: "new_12", duration: "Premium 8 Month", label: "Rp 80.000" },
+        { id: "new_13", duration: "Premium 9 Month", label: "Rp 90.000" },
+        { id: "new_14", duration: "Premium 10 Month", label: "Rp 100.000" }
+    ]
+};
+
+let currentType = "NEW"; 
+let selectedPackageId = 1;
+const API_BASE_URL = "http://localhost:3000"; // Ganti dengan domain VPS kamu jika sudah online
+
+function renderProducts() {
+    const container = document.getElementById("products-container");
+    container.innerHTML = "";
+    if (currentType === "LIST_GRUP") return;
+
+    const list = BOT_PACKAGES[currentType];
+    list.forEach((prod, index) => {
+        const card = document.createElement("div");
+        card.className = `card ${index === 0 ? "active" : ""}`;
+        if(index === 0) selectedPackageId = prod.id;
+        card.innerHTML = `<h2>${prod.duration}</h2><p>${prod.label}</p>`;
+        card.addEventListener("click", () => {
+            document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+            selectedPackageId = prod.id;
+        });
+        container.appendChild(card);
+    });
+}
+
+function switchTab(type) {
+    currentType = type;
+    const tabsBtn = document.querySelectorAll(".tabs button");
+    tabsBtn.forEach(btn => btn.classList.remove("active"));
+    if (window.event) window.event.target.classList.add("active");
+    
+    const sectionTitle = document.getElementById("section-product-title");
+    const groupContainer = document.getElementById("group-link-container");
+    const numberContainer = document.getElementById("target-number-container");
+    const numberLabel = document.getElementById("target-number-label");
+    const productsContainer = document.getElementById("products-container");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    productsContainer.style.display = "grid";
+    submitBtn.style.display = "block";
+    groupContainer.style.display = "none";
+    numberContainer.style.display = "block";
+
+    if (type === "NEW") {
+        sectionTitle.innerText = "pilih paket durasi sewa baru";
+        groupContainer.style.display = "block";
+        numberLabel.innerText = "nomor premium bonus (tujuan)";
+    } else if (type === "RENEW") {
+        sectionTitle.innerText = "pilih paket perpanjang masa aktif bot";
+        numberLabel.innerText = "nomor wa pendaftar / admin grup";
+    } else if (type === "PREMIUM") {
+        sectionTitle.innerText = "pilih paket aktivasi fitur premium";
+        numberLabel.innerText = "nomor wa yang ingin diaktifkan premium";
+    } else if (type === "LIST_GRUP") {
+        sectionTitle.innerText = "cek daftar list grup aktif";
+        productsContainer.style.display = "none";
+        numberLabel.innerText = "masukkan nomor whatsapp terdaftar";
+        submitBtn.style.display = "none";
+    }
+    renderProducts();
+}
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+    const groupLink = document.getElementById("groupLink").value.trim();
+    const targetNumber = document.getElementById("targetNumber").value.trim();
+
+    if (!targetNumber) { alert("Mohon masukkan nomor WhatsApp tujuan!"); return; }
+    if (currentType === "NEW" && !groupLink) { alert("Mohon masukkan tautan link grup WhatsApp Anda!"); return; }
+
+    const payload = { packageId: selectedPackageId, type: currentType, groupLink: currentType === "NEW" ? groupLink : "none", targetNumber: targetNumber };
+
+    try {
+        const btn = document.getElementById("submitBtn");
+        btn.innerText = "MEMBUAT INVOICE QRIS...";
+        btn.disabled = true;
+
+        const response = await fetch(`${API_BASE_URL}/api/create-invoice-web`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+            alert("Invoice QRIS Berhasil Dibuat! Anda akan dialihkan ke halaman pembayaran.");
+            window.location.href = result.qrisImageUrl; 
+        } else {
+            alert("Gagal memproses transaksi: " + result.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Gagal terhubung dengan sistem server backend.");
+    } finally {
+        const btn = document.getElementById("submitBtn");
+        btn.innerText = "lanjutkan pembayaran";
+        btn.disabled = false;
+    }
+});
+renderProducts();
+</script>
+</body>
+</html>
+
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+// ==================== CONFIGURATION ====================
+const TRX_PATH = "./database/sewa_pakasir.json";
+
+const PAKASIR_CONFIG = {
+  project: "velynabot", 
+  apikey: "2h9Uc1bZ5iP7EuLZj9eeD6j3grWwhWX1"
+};
+
+const TELEGRAM_CONFIG = {
+  token: "8726574684:AAGirxmR98He3_oRWubznWX1LlC_CpMOfIY", 
+  chatId: "8347420543"
+};
+
+const SEWA_PACKAGES = {
+  // SEWA BARU
+  1: { name: "Sewa Bot 30 Hari", days: 30, price: 12000, type: "NEW", bonusPrem: 1 },
+  2: { name: "Sewa Bot 60 Hari", days: 60, price: 20000, type: "NEW", bonusPrem: 2 },
+  3: { name: "Sewa Bot 90 Hari", days: 90, price: 30000, type: "NEW", bonusPrem: 3 },
+  4: { name: "Sewa Bot 120 Hari", days: 120, price: 40000, type: "NEW", bonusPrem: 4 },
+  5: { name: "Sewa Bot 150 Hari", days: 150, price: 50000, type: "NEW", bonusPrem: 5 },
+  6: { name: "Sewa Bot 180 Hari", days: 180, price: 60000, type: "NEW", bonusPrem: 6 },
+  // PERPANJANG
+  11: { name: "Perpanjang Sewa 30 Hari", days: 30, price: 12000, type: "RENEW", bonusPrem: 0 },
+  12: { name: "Perpanjang Sewa 60 Hari", days: 60, price: 20000, type: "RENEW", bonusPrem: 0 },
+  13: { name: "Perpanjang Sewa 90 Hari", days: 90, price: 30000, type: "RENEW", bonusPrem: 0 },
+  14: { name: "Perpanjang Sewa 120 Hari", days: 120, price: 40000, type: "RENEW", bonusPrem: 0 },
+  15: { name: "Perpanjang Sewa 150 Hari", days: 150, price: 50000, type: "RENEW", bonusPrem: 0 },
+  16: { name: "Perpanjang Sewa 180 Hari", days: 180, price: 60000, type: "RENEW", bonusPrem: 0 },
+  // PREMIUM PACKAGES (SINKRON NEW_PREMIUM_PACKAGES)
+  "new_1": { name: "Premium 1 Hari", days: 1, price: 1000, type: "PREMIUM", bonusPrem: 0 },
+  "new_2": { name: "Premium 3 Hari", days: 3, price: 3000, type: "PREMIUM", bonusPrem: 0 },
+  "new_3": { name: "Premium 5 Hari", days: 5, price: 5000, type: "PREMIUM", bonusPrem: 0 },
+  "new_4": { name: "Premium 8 Hari", days: 8, price: 8000, type: "PREMIUM", bonusPrem: 0 },
+  "new_5": { name: "Premium 1 Month", days: 30, price: 10000, type: "PREMIUM", bonusPrem: 0 },
+  "new_6": { name: "Premium 2 Month", days: 60, price: 20000, type: "PREMIUM", bonusPrem: 0 },
+  "new_7": { name: "Premium 3 Month", days: 90, price: 30000, type: "PREMIUM", bonusPrem: 0 },
+  "new_8": { name: "Premium 4 Month", days: 120, price: 40000, type: "PREMIUM", bonusPrem: 0 },
+  "new_9": { name: "Premium 5 Month", days: 150, price: 50000, type: "PREMIUM", bonusPrem: 0 },
+  "new_10": { name: "Premium 6 Month", days: 180, price: 60000, type: "PREMIUM", bonusPrem: 0 },
+  "new_11": { name: "Premium 7 Month", days: 210, price: 70000, type: "PREMIUM", bonusPrem: 0 },
+  "new_12": { name: "Premium 8 Month", days: 240, price: 80000, type: "PREMIUM", bonusPrem: 0 },
+  "new_13": { name: "Premium 9 Month", days: 270, price: 90000, type: "PREMIUM", bonusPrem: 0 },
+  "new_14": { name: "Premium 10 Month", days: 300, price: 100000, type: "PREMIUM", bonusPrem: 0 }
+};
+
+async function sendTelegramNotification(text) {
+  try {
+    await axios.post(`https://api.telegram.org/bot${TELEGRAM_CONFIG.token}/sendMessage`, {
+      chat_id: TELEGRAM_CONFIG.chatId,
+      text: text,
+      parse_mode: "Markdown"
+    });
+  } catch (e) { console.error("Gagal mengirim Telegram:", e.message); }
+}
+
+// ==================== ENDPOINT: CREATE INVOICE ====================
+app.post("/api/create-invoice-web", async (req, res) => {
+  try {
+    const { packageId, type, groupLink, targetNumber } = req.body;
+    const paketSelected = SEWA_PACKAGES[packageId];
+    if (!paketSelected) return res.status(400).json({ status: "error", message: "Paket tidak valid." });
+
+    const orderId = "ALYABOT-" + Date.now();
+    const responsePakasir = await axios.post("https://app.pakasir.com/api/transactioncreate/qris", {
+      project: PAKASIR_CONFIG.project, order_id: orderId, amount: paketSelected.price, api_key: PAKASIR_CONFIG.apikey
+    });
+
+    const paymentData = responsePakasir.data?.payment;
+    if (!paymentData) return res.status(500).json({ status: "error", message: "Gagal membuat invoice Pakasir." });
+
+    let cleanSender = targetNumber.replace(/[^0-9]/g, "");
+    if (cleanSender.startsWith("0")) cleanSender = "62" + cleanSender.slice(1);
+    if (!cleanSender.endsWith("@s.whatsapp.net")) cleanSender += "@s.whatsapp.net";
+
+    let dbTrx = fs.existsSync(TRX_PATH) ? JSON.parse(fs.readFileSync(TRX_PATH, "utf8")) : {};
+    dbTrx[orderId] = {
+      sender: cleanSender, chat: cleanSender, type: type === "PREMIUM" ? "BUY_PREMIUM" : "SEWA_BOT",
+      amount: paketSelected.price, fee_admin: paymentData.fee, total_payment: paymentData.total_payment,
+      status: "UNPAID", expired_at: paymentData.expired_at, link_grub: type === "NEW" ? groupLink : "none",
+      premium_target: cleanSender, product_data: paketSelected
+    };
+
+    if (!fs.existsSync("./database")) fs.mkdirSync("./database");
+    fs.writeFileSync(TRX_PATH, JSON.stringify(dbTrx, null, 2));
+
+    return res.json({ status: "success", orderId: orderId, qrisImageUrl: `https://app.pakasir.com/pay/${PAKASIR_CONFIG.project}/${paymentData.total_payment}?order_id=${orderId}&qris_only=1` });
+  } catch (error) { return res.status(500).json({ status: "error", message: error.message }); }
+});
+
+// ==================== ENDPOINT: WEBHOOK ====================
+app.post("/api/webhook-pakasir", async (req, res) => {
+  try {
+    const { order_id, project, status } = req.body;
+    if (project !== PAKASIR_CONFIG.project) return res.sendStatus(403);
+
+    let dbTrx = fs.existsSync(TRX_PATH) ? JSON.parse(fs.readFileSync(TRX_PATH, "utf8")) : {};
+    const trx = dbTrx[order_id];
+    if (!trx || trx.status === "PAID") return res.json({ status: "ignored" });
+
+    if (status === "completed") {
+      const sock = global.sock || {}; 
+      if (trx.type === "BUY_PREMIUM") { await processPremiumLunas(sock, order_id, trx); } 
+      else { await processSewaLunas(sock, order_id, trx); }
+    }
+    return res.json({ status: "ok" });
+  } catch (error) { return res.status(500).send("Internal Server Error"); }
+});
+
+// ==================== PROCESS SEWA & PERPANJANG LUNAS ====================
+async function processSewaLunas(sock, orderId, trx) {
+    let dbTrx = JSON.parse(fs.readFileSync(TRX_PATH, "utf8"));
+    const linkGc = trx.link_grub; const cleanPremUserStr = trx.premium_target; const pData = trx.product_data;
+    let targetGroupJid = null; let res_namegc = "Grup Tidak Diketahui";
+
+    try {
+        if (linkGc && linkGc.includes('chat.whatsapp.com/')) {
+            const code = linkGc.split('https://chat.whatsapp.com/')[1];
+            const res = await sock.query({ tag: "iq", attrs: { type: "get", xmlns: "w:g2", to: "@g.us" }, content: [{ tag: "invite", attrs: { code } }] });
+            targetGroupJid = res.content[0].attrs.id + '@g.us'; res_namegc = res.content[0].attrs.subject;
+            if (pData.type === "NEW") await sock.groupAcceptInvite(code).catch(() => {});
+        }
+    } catch (e) { console.error(e); }
+
+    if (!targetGroupJid) targetGroupJid = "0@g.us"; 
+    let currentSewa = await findSewa(targetGroupJid); let baseTime = Date.now();
+    if (currentSewa && currentSewa.expired > baseTime) baseTime = currentSewa.expired; 
+    
+    let timestampExpiration = baseTime + (pData.days * 86400000);
+    const tanggalInput = typeof hariini !== 'undefined' ? hariini : new Date().toLocaleDateString("id-ID");
+    await addSewa(targetGroupJid, { linkGrub: linkGc, start: tanggalInput, expired: timestampExpiration });
+    if (typeof deleteCache === "function") deleteCache(`sewa-${targetGroupJid}`);
+
+    let bonusText = "Tidak ada"; 
+    if (pData.bonusPrem > 0 && cleanPremUserStr !== 'none') {
+        const targetNumbers = cleanPremUserStr.split(",").map(n => n.trim()).filter(Boolean);
+        const validTargets = targetNumbers.slice(0, pData.bonusPrem);
+        for (const targetUser of validTargets) {
+            let userData = await findUser(targetUser);
+            if (!userData) { userData = { money: 0, role: "user", status: "active", premium: null }; await addUser(targetUser, userData); }
+            let tglMulai = new Date();
+            if (userData.premium && new Date(userData.premium) > tglMulai) tglMulai = new Date(userData.premium); 
+            const tanggalAkhirPrem = new Date(tglMulai.setDate(tglMulai.getDate() + 30));
+            userData.premium = tanggalAkhirPrem.toISOString(); userData.role = 'premium';
+            await updateUser(targetUser, userData);
+        }
+        bonusText = `Sukses Aktif (${validTargets.length} User Premium Terdaftar)`;
+    }
+
+    dbTrx[orderId].status = "PAID"; dbTrx[orderId].paid_at = Date.now();
+    fs.writeFileSync(TRX_PATH, JSON.stringify(dbTrx, null, 2));
+
+    try {
+        const formattedDateEnd = new Date(timestampExpiration).toLocaleString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB";
+        let teleNotification = `📢 *TRANSAKSI SEWA/PERPANJANG MASUK* 📢\n\n💰 *Status:* LUNAS (Pakasir Web)\n🆔 *Order ID:* \`${orderId}\`\n📦 *Jenis:* ${pData.type === "NEW" ? "Sewa Baru" : "Perpanjang"}\n📋 *Paket:* ${pData.name}\n👥 *Grup:* ${res_namegc}\n🔗 *Link:* ${linkGc}\n👤 *Pembeli:* \`${trx.sender.split("@")[0]}\`\n🎁 *Bonus Premium:* ${bonusText}\n💵 *Total:* *Rp ${trx.total_payment.toLocaleString("id-ID")}*\n⏳ *Expired:* _${formattedDateEnd}_\n\n⚙️ _Sistem otomatis memperbarui database sewa grup._`;
+        await sendTelegramNotification(teleNotification);
+    } catch (teleErr) { console.error(teleErr); }
+}
+
+// ==================== PROCESS PREMIUM LUNAS ====================
+async function processPremiumLunas(sock, orderId, trx) {
+    let dbTrx = JSON.parse(fs.readFileSync(TRX_PATH, "utf8"));
+    const targetUser = trx.premium_target; const pData = trx.product_data;
+
+    let userData = await findUser(targetUser);
+    if (!userData) { userData = { money: 0, role: "user", status: "active", premium: null }; await addUser(targetUser, userData); }
+
+    const sekarang = new Date(); let tanggalMulai = new Date();
+    if (userData.premium) { const premiumLama = new Date(userData.premium); if (premiumLama > sekarang) tanggalMulai = premiumLama; }
+
+    const durasiMs = pData.days * 24 * 60 * 60 * 1000;
+    const tanggalAkhir = new Date(tanggalMulai.getTime() + durasiMs);
+    userData.premium = tanggalAkhir.toISOString(); userData.role = "premium";
+    await updateUser(targetUser, userData);
+
+    dbTrx[orderId].status = "PAID"; dbTrx[orderId].paid_at = Date.now();
+    fs.writeFileSync(TRX_PATH, JSON.stringify(dbTrx, null, 2));
+
+    try {
+        const formattedDateEnd = tanggalAkhir.toLocaleString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB";
+        let teleNotification = `📢 *TRANSAKSI PREMIUM MASUK* 📢\n\n💰 *Status:* LUNAS (Pakasir Web)\n🆔 *Order ID:* \`${orderId}\`\n📦 *Paket:* ${pData.name}\n👤 *Target Nomor:* \`${targetUser.split("@")[0]}\`\n💵 *Total:* *Rp ${trx.total_payment.toLocaleString("id-ID")}*\n⏳ *Berlaku Sampai:* _${formattedDateEnd}_\n\n⚙️ _Sistem otomatis mengubah role user menjadi premium._`;
+        await sendTelegramNotification(teleNotification);
+    } catch (teleErr) { console.error(teleErr); }
+}
+
+// Link ke DB core bot bawaan script utama kamu
+async function findUser(jid) { return global.findUser ? await global.findUser(jid) : null; }
+async function addUser(jid, data) { if(global.addUser) await global.addUser(jid, data); }
+async function updateUser(jid, data) { if(global.updateUser) await global.updateUser(jid, data); }
+async function findSewa(jid) { return global.findSewa ? await global.findSewa(jid) : null; }
+async function addSewa(jid, data) { if(global.addSewa) await global.addSewa(jid, data); }
+
+app.listen(3000, () => console.log("Server API Alyabot Space Aktif pada Port 3000"));
+
